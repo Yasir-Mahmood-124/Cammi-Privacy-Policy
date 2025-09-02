@@ -1,6 +1,7 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { CssBaseline } from "@mui/material";
+import { Providers } from "./providers"; // 👈 import wrapper
+import ThemeRegistry from "@/theme/Theme";
 
 export const metadata: Metadata = {
   title: "Cammi.ai",
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <CssBaseline />
-        {children}
+        <Providers>
+          <CssBaseline />
+          <ThemeRegistry>{children}</ThemeRegistry>
+        </Providers>
       </body>
     </html>
   );
