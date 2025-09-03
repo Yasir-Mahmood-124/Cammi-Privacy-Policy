@@ -2,6 +2,7 @@
 
 import { Drawer, List, ListItem, ListItemButton, ListItemText, Typography, useTheme } from "@mui/material";
 
+
 interface SidebarProps {
   menuItems: { key: string; label: string }[];
   selectedMenu: string;

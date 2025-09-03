@@ -1,37 +1,97 @@
+
+
 // "use client";
 
 // import { useEffect, useState } from "react";
 // import { useSearchParams } from "next/navigation";
-// import {
-//   Box,
-//   Drawer,
-//   List,
-//   ListItem,
-//   ListItemButton,
-//   ListItemText,
-//   Typography,
-//   TextField,
-//   Button,
-//   Paper,
-//   CircularProgress,
-//   useTheme,
-// } from "@mui/material";
-// import { useCreateLinkedInPostMutation } from "@/redux/textPostSlice";
+// import { Box, useTheme } from "@mui/material";
+// import Sidebar from "@/components/Sidebar";
+// import LinkedInPost from "@/components/LinkedInPost";
+// import CalendarView from "@/components/CalendarView";
 
 // const Dashboard = () => {
-//   const theme = useTheme(); // 👈 Access global theme
-
+//   const theme = useTheme();
 //   const searchParams = useSearchParams();
 //   const subFromUrl = searchParams.get("sub");
 
 //   const [selectedMenu, setSelectedMenu] = useState("linkedin-post");
-//   const [message, setMessage] = useState("");
 //   const [sub, setSub] = useState<string | null>(null);
 
-//   const [createPost, { data, isLoading, isError, error }] =
-//     useCreateLinkedInPostMutation();
+// const [posts, setPosts] = useState([
+//   {
+//     id: "1",
+//     post_time: "2024-06-01T10:00:00Z",
+//     schedule_time: "2024-06-02T09:00:00Z",
+//     message: "Post about React",
+//     status: "pending" as const,
+//   },
+//   {
+//     id: "2",
+//     post_time: "2024-06-03T14:30:00Z",
+//     schedule_time: "2024-06-04T12:00:00Z",
+//     message: "Post about Next.js",
+//     status: "scheduled" as const,
+//   },
+//   {
+//     id: "3",
+//     post_time: "2024-06-02T08:00:00Z",
+//     schedule_time: "2024-06-02T15:00:00Z",
+//     message: "Post about TypeScript",
+//     status: "pending" as const,
+//   },
+//   {
+//     id: "4",
+//     post_time: "2024-06-03T11:00:00Z",
+//     schedule_time: "2024-06-05T18:00:00Z",
+//     message: "Post about Node.js",
+//     status: "scheduled" as const,
+//   },
+//   {
+//     id: "5",
+//     post_time: "2024-06-05T09:30:00Z",
+//     schedule_time: "2024-06-06T10:00:00Z",
+//     message: "Post about MongoDB",
+//     status: "pending" as const,
+//   },
+//   {
+//     id: "6",
+//     post_time: "2024-06-06T07:15:00Z",
+//     schedule_time: "2024-06-07T14:00:00Z",
+//     message: "Post about Express.js",
+//     status: "scheduled" as const,
+//   },
+//   {
+//     id: "7",
+//     post_time: "2024-06-07T13:45:00Z",
+//     schedule_time: "2024-06-07T16:00:00Z",
+//     message: "Post about UI/UX Design",
+//     status: "pending" as const,
+//   },
+//   {
+//     id: "8",
+//     post_time: "2024-06-08T16:20:00Z",
+//     schedule_time: "2024-06-09T11:00:00Z",
+//     message: "Post about Git & GitHub",
+//     status: "scheduled" as const,
+//   },
+//   {
+//     id: "9",
+//     post_time: "2024-06-09T10:10:00Z",
+//     schedule_time: "2024-06-10T09:00:00Z",
+//     message: "Post about Agile Practices",
+//     status: "pending" as const,
+//   },
+//   {
+//     id: "10",
+//     post_time: "2024-06-10T12:00:00Z",
+//     schedule_time: "2024-06-11T17:00:00Z",
+//     message: "Post about Testing with Jest Post about Testing with Jest Post about Testing with Jest Post about Testing with Jest Post about Testing with Jest",
+//     status: "scheduled" as const,
+//   },
+// ]);
 
-//   // Save sub into localStorage
+
+
 //   useEffect(() => {
 //     if (subFromUrl) {
 //       localStorage.setItem("linkedin_sub", subFromUrl);
@@ -42,99 +102,26 @@
 //     }
 //   }, [subFromUrl]);
 
-//   const handlePost = async () => {
-//     if (!sub || !message.trim()) return;
-//     await createPost({ sub, post_message: message });
-//   };
+//   const menuItems = [
+//     { key: "linkedin-post", label: "LinkedIn Post" },
+//     { key: "view", label: "View" },
+//   ];
 
 //   return (
 //     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-//       {/* Sidebar */}
-//       <Drawer
-//         variant="permanent"
-//         sx={{
-//           width: 240,
-//           flexShrink: 0,
-//           "& .MuiDrawer-paper": {
-//             width: 240,
-//             boxSizing: "border-box",
-//             bgcolor: theme.palette.background.paper,
-//           },
-//         }}
-//       >
-//         <Typography
-//           variant="h6"
-//           sx={{
-//             m: 2,
-//             fontWeight: 600,
-//             color: theme.palette.primary.main,
-//           }}
-//         >
-//           Dashboard
-//         </Typography>
-//         <List>
-//           <ListItem disablePadding>
-//             <ListItemButton
-//               selected={selectedMenu === "linkedin-post"}
-//               onClick={() => setSelectedMenu("linkedin-post")}
-//             >
-//               <ListItemText
-//                 primary="LinkedIn Post"
-//                 primaryTypographyProps={{
-//                   sx: { fontWeight: selectedMenu === "linkedin-post" ? 600 : 400 },
-//                 }}
-//               />
-//             </ListItemButton>
-//           </ListItem>
-//         </List>
-//       </Drawer>
+//       <Sidebar menuItems={menuItems} selectedMenu={selectedMenu} onSelect={setSelectedMenu} />
 
-//       {/* Main Content */}
 //       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-//         {selectedMenu === "linkedin-post" && (
-//           <Paper sx={{ p: 3, maxWidth: 800 }}>
-//             <Typography variant="h5" gutterBottom color="text.primary">
-//               Create LinkedIn Post
-//             </Typography>
-
-//             <TextField
-//               fullWidth
-//               multiline
-//               rows={6}
-//               placeholder="Write your post here..."
-//               value={message}
-//               onChange={(e) => setMessage(e.target.value)}
-//               sx={{ mb: 2 }}
-//             />
-
-//             <Button
-//               variant="contained"
-//               color="primary"
-//               onClick={handlePost}
-//               disabled={isLoading}
-//             >
-//               {isLoading ? <CircularProgress size={24} /> : "Post"}
-//             </Button>
-
-//             {data && (
-//               <Typography color="success.main" sx={{ mt: 2 }}>
-//                 ✅ Post created successfully! ID: {data.id}
-//               </Typography>
-//             )}
-
-//             {isError && (
-//               <Typography color="error" sx={{ mt: 2 }}>
-//                 ❌ Error: {JSON.stringify(error)}
-//               </Typography>
-//             )}
-//           </Paper>
-//         )}
+//         {selectedMenu === "linkedin-post" && <LinkedInPost sub={sub} />}
+//         {selectedMenu === "view" && <CalendarView posts={posts} />}
 //       </Box>
 //     </Box>
 //   );
 // };
 
 // export default Dashboard;
+
+
 
 "use client";
 
@@ -143,6 +130,8 @@ import { useSearchParams } from "next/navigation";
 import { Box, useTheme } from "@mui/material";
 import Sidebar from "@/components/Sidebar";
 import LinkedInPost from "@/components/LinkedInPost";
+import CalendarView from "@/components/CalendarView";
+import { useGetPostsMutation } from "@/redux/viewApiSlice";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -151,40 +140,67 @@ const Dashboard = () => {
 
   const [selectedMenu, setSelectedMenu] = useState("linkedin-post");
   const [sub, setSub] = useState<string | null>(null);
+  const [posts, setPosts] = useState<any[]>([]); // Will hold API response
 
-  // Save sub into localStorage
+  const [getPosts, { data, isLoading, error }] = useGetPostsMutation();
+
+  // Save sub and fetch posts
   useEffect(() => {
+    const fetchPosts = async (currentSub: string) => {
+      try {
+        const result = await getPosts({ sub: currentSub }).unwrap();
+        // Map API response to match CalendarView's expected shape
+        const mappedPosts = result.map((item: any, index: number) => ({
+          id: item.post_urn || `scheduled-${index}`,
+          post_time: item.post_time,
+          schedule_time: item.scheduled_time || item.post_time,
+          message: item.message || item.message || item.post_urn || "",
+          status: item.status === "pending" ? "pending" : "posted",
+        }));
+        setPosts(mappedPosts);
+      } catch (err) {
+        console.error("Failed to fetch posts:", err);
+      }
+    };
+
     if (subFromUrl) {
       localStorage.setItem("linkedin_sub", subFromUrl);
       setSub(subFromUrl);
+      fetchPosts(subFromUrl);
     } else {
       const savedSub = localStorage.getItem("linkedin_sub");
-      if (savedSub) setSub(savedSub);
+      if (savedSub) {
+        setSub(savedSub);
+        fetchPosts(savedSub);
+      }
     }
-  }, [subFromUrl]);
+  }, [subFromUrl, getPosts]);
 
-  // Dynamic menu items
   const menuItems = [
     { key: "linkedin-post", label: "LinkedIn Post" },
-    // Future menu items can be added here
+    { key: "view", label: "View" },
   ];
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
-      {/* Sidebar */}
-      <Sidebar
-        menuItems={menuItems}
-        selectedMenu={selectedMenu}
-        onSelect={setSelectedMenu}
-      />
+      <Sidebar menuItems={menuItems} selectedMenu={selectedMenu} onSelect={setSelectedMenu} />
 
-      {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         {selectedMenu === "linkedin-post" && <LinkedInPost sub={sub} />}
+        {selectedMenu === "view" && (
+          <>
+            {isLoading ? (
+              <p>Loading posts...</p>
+            ) : error ? (
+              <p>Error fetching posts</p>
+            ) : (
+              <CalendarView posts={posts} />
+            )}
+          </>
+        )}
       </Box>
     </Box>
   );
 };
 
 export default Dashboard;
-
