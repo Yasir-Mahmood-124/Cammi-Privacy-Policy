@@ -1,15 +1,32 @@
 "use client";
 
-import { Drawer, List, ListItem, ListItemButton, ListItemText, Typography, useTheme } from "@mui/material";
-
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  useTheme,
+} from "@mui/material";
 
 interface SidebarProps {
-  menuItems: { key: string; label: string }[];
+  menuItems: {
+    key: string;
+    label: string;
+    icon?: React.ReactNode;
+    disabled?: boolean;
+  }[];
   selectedMenu: string;
   onSelect: (key: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ menuItems, selectedMenu, onSelect }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  menuItems,
+  selectedMenu,
+  onSelect,
+}) => {
   const theme = useTheme();
 
   return (
@@ -33,19 +50,39 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, selectedMenu, onSelect }) 
           color: theme.palette.primary.main,
         }}
       >
-        Dashboard
+        CAMMI
       </Typography>
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.key} disablePadding>
             <ListItemButton
               selected={selectedMenu === item.key}
-              onClick={() => onSelect(item.key)}
+              onClick={() => !item.disabled && onSelect(item.key)}
+              disabled={item.disabled}
+              sx={{
+                opacity: item.disabled ? 0.5 : 1,
+                cursor: item.disabled ? "not-allowed" : "pointer",
+              }}
             >
+              {item.icon && (
+                <ListItemIcon
+                  sx={{
+                    color:
+                      selectedMenu === item.key && !item.disabled
+                        ? theme.palette.primary.main
+                        : "inherit",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+              )}
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
-                  sx: { fontWeight: selectedMenu === item.key ? 600 : 400 },
+                  sx: {
+                    fontWeight:
+                      selectedMenu === item.key && !item.disabled ? 600 : 400,
+                  },
                 }}
               />
             </ListItemButton>
