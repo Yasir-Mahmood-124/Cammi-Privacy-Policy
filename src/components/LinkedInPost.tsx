@@ -1,4 +1,4 @@
-// Updated handlePost function and imports
+// Updated LinkedIn Post component with multi-image support
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,6 +25,10 @@ import {
   Fade,
   Slide,
   Tooltip,
+  Grid,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
 } from "@mui/material";
 import {
   CheckCircle,
@@ -40,16 +44,23 @@ import {
   Star,
   Analytics,
   Bolt,
-  Image 
+  Image,
+  Close,
+  CloudUpload,
+  PhotoLibrary,
 } from "@mui/icons-material";
 import CreditsSidebar from "./CreditsSidebar";
-// Make sure this import path is correct - should match your apiSlice location
-// Update the import path and/or exported member to match your actual API slice file
 import { useCreateLinkedInPostMutation } from "@/redux/textPostSlice";
-import { useSchedulePostMutation } from "@/redux/schedulePostApi";
+import { useSchedulePostMutation } from "@/redux/services/schedulePostApi";
 
 interface LinkedInPostProps {
   sub: string | null;
+}
+
+interface ImageFile {
+  file: File;
+  preview: string;
+  id: string;
 }
 
 const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
@@ -58,10 +69,11 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [scheduledDateTime, setScheduledDateTime] = useState("");
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  
+  // Updated state for multiple images
+  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Updated with proper destructuring
   const [createPost, { 
     isLoading, 
     isError, 
@@ -82,15 +94,12 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
   const [openScheduleSnackbar, setOpenScheduleSnackbar] = useState(false);
   const [openErrorSnackbar, setOpenErrorSnackbar] = useState(false);
 
-  // Mock credits data - replace with actual API data
   const creditsData = {
     total: 500,
     used: 120,
     remaining: 380,
     planType: "Pro",
   };
-
-  const usagePercentage = (creditsData.used / creditsData.total) * 100;
 
   const handleScheduleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -134,93 +143,165 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
       reader.onerror = (err) => reject(err);
     });
 
-  // Handle Image Upload
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      setPreview(URL.createObjectURL(file));
+  // Generate unique ID for images
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Process multiple files
+  const processFiles = (files: FileList) => {
+    const maxImages = 10; // LinkedIn allows up to 10 images
+    const currentCount = selectedImages.length;
+    const availableSlots = maxImages - currentCount;
+    
+    if (availableSlots <= 0) {
+      alert(`Maximum ${maxImages} images allowed`);
+      return;
+    }
+
+    const filesToProcess = Array.from(files).slice(0, availableSlots);
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
+    filesToProcess.forEach(file => {
+      if (!validImageTypes.includes(file.type)) {
+        alert(`${file.name} is not a valid image format`);
+        return;
+      }
+      
+      if (file.size > 8 * 1024 * 1024) { // 8MB limit
+        alert(`${file.name} is too large. Maximum size is 8MB`);
+        return;
+      }
+
+      const imageFile: ImageFile = {
+        file,
+        preview: URL.createObjectURL(file),
+        id: generateId(),
+      };
+
+      setSelectedImages(prev => [...prev, imageFile]);
+    });
+  };
+
+  // Handle multiple image upload
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      processFiles(files);
     }
   };
 
-  // Updated Handle Post with better error handling
-// Updated Handle Post with better success/error handling
-const handlePost = async () => {
-  const storedSub = typeof window !== "undefined" 
-    ? localStorage.getItem("linkedin_sub") 
-    : null;
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-  if (!storedSub || !message.trim()) {
-    console.warn("Missing required fields");
-    return;
-  }
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
 
-  try {
-    let imagesPayload: { image: string }[] | undefined = undefined;
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processFiles(files);
+    }
+  };
 
-    if (selectedImage) {
-      const base64 = await toBase64(selectedImage);
-      imagesPayload = [{ image: base64 }];
+  // Remove image
+  const removeImage = (id: string) => {
+    setSelectedImages(prev => {
+      const updated = prev.filter(img => img.id !== id);
+      // Clean up preview URL
+      const removed = prev.find(img => img.id === id);
+      if (removed) {
+        URL.revokeObjectURL(removed.preview);
+      }
+      return updated;
+    });
+  };
+
+  // Clear all images
+  const clearAllImages = () => {
+    selectedImages.forEach(img => URL.revokeObjectURL(img.preview));
+    setSelectedImages([]);
+  };
+
+  // Updated Handle Post with multiple images
+  const handlePost = async () => {
+    const storedSub = typeof window !== "undefined" 
+      ? localStorage.getItem("linkedin_sub") 
+      : null;
+
+    if (!storedSub || !message.trim()) {
+      console.warn("Missing required fields");
+      return;
     }
 
-    const payload = {
-      sub: storedSub,
-      post_message: message,
-      ...(imagesPayload && { images: imagesPayload }),
+    try {
+      let imagesPayload: { image: string }[] | undefined = undefined;
+
+      // Process multiple images
+      if (selectedImages.length > 0) {
+        const base64Images = await Promise.all(
+          selectedImages.map(async (imageFile) => {
+            const base64 = await toBase64(imageFile.file);
+            return { image: base64 };
+          })
+        );
+        imagesPayload = base64Images;
+      }
+
+      const payload = {
+        sub: storedSub,
+        post_message: message,
+        ...(imagesPayload && { images: imagesPayload }),
+      };
+
+      console.log("Payload to API:", JSON.stringify(payload, null, 2));
+
+      const response = await createPost(payload).unwrap();
+      
+      if (response && response.id) {
+        console.log("Post Created Successfully:", response);
+        setOpenSnackbar(true);
+        
+        // Reset form only on success
+        setMessage("");
+        clearAllImages();
+        
+        // Clear file input
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+      } else {
+        console.error("API Response missing ID:", response);
+        setOpenErrorSnackbar(true);
+      }
+
+    } catch (err: any) {
+      console.error("RTK Query Error:", err);
+      setTimeout(() => {
+        setOpenErrorSnackbar(true);
+      }, 100);
+    }
+  };
+
+  // Clean up preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      selectedImages.forEach(img => URL.revokeObjectURL(img.preview));
     };
+  }, []);
 
-    console.log("Payload to API:", JSON.stringify(payload, null, 2));
-
-    // Use unwrap() to get the actual response or throw an error
-    const response = await createPost(payload).unwrap();
-    
-    // Check if response has an id (which indicates success)
-    if (response && response.id) {
-      console.log("Post Created Successfully:", response);
-      
-      // Show success message to user
-     setOpenErrorSnackbar(true); // Add this state if you don't have it
-      
-      // Reset form only on success
-      setMessage("");
-      setSelectedImage(null);
-      setPreview(null);
-      
-      // Clear file input
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-      
-    } else {
-      // Response doesn't have ID, treat as error
-      console.error("API Response missing ID:", response);
-      setOpenErrorSnackbar(true);
-    }
-
-  } catch (err: any) {
-    // Only log the error but don't show error snackbar if we got a successful response
-    // (This handles the RTK Query internal error while API actually succeeded)
-    console.error("RTK Query Error (but check if API succeeded):", err);
-    
-    // Check if there was actually an API success despite the RTK error
-    // Look for the success log in console - if you see "API Response: {id: ...}" 
-    // then the API call succeeded despite RTK Query throwing an error
-    
-    // You might want to add a small delay and check if the success message appeared
-    setTimeout(() => {
-      // If no success message was logged, then show error
-      setOpenErrorSnackbar(true);
-    }, 100);
-  }
-};
-
-  // Effect to handle success state
   useEffect(() => {
     if (isSuccess) {
       setOpenSnackbar(true);
     }
   }, [isSuccess]);
 
-  // Effect to handle error state
   useEffect(() => {
     if (isError) {
       setOpenErrorSnackbar(true);
@@ -319,7 +400,7 @@ const handlePost = async () => {
               </Box>
             </Box>
 
-            {/* Enhanced Mode Switcher */}
+            {/* Mode Switcher */}
             <Box sx={{ mb: 4 }}>
               <Typography
                 variant="subtitle1"
@@ -457,35 +538,112 @@ const handlePost = async () => {
                     />
                   </Box>
 
-                  {/* Image Upload */}
+                  {/* Enhanced Multiple Image Upload Section */}
                   <Box sx={{ mb: 3 }}>
-                    <Button
-                      variant="outlined"
-                      component="label"
-                      startIcon={<Image />}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Upload Image
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={handleImageChange}
-                      />
-                    </Button>
 
-                    {preview && (
-                      <Box mt={2}>
-                        <Typography variant="caption">Preview:</Typography>
-                        <img
-                          src={preview}
-                          alt="preview"
-                          style={{
-                            maxWidth: "100%",
-                            borderRadius: "8px",
-                            marginTop: "4px",
-                          }}
+                    {/* Upload Buttons */}
+                    <Box display="flex" gap={2} sx={{ mb: 2 }}>
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        startIcon={<PhotoLibrary />}
+                        sx={{ borderRadius: 2 }}
+                      >
+                        Add Images
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          style={{ display: "none" }}
                         />
+                      </Button>
+
+                      {selectedImages.length > 0 && (
+                        <Button
+                          variant="text"
+                          color="error"
+                          onClick={clearAllImages}
+                          startIcon={<Close />}
+                        >
+                          Clear All
+                        </Button>
+                      )}
+                    </Box>
+
+                    {/* Image Previews */}
+                    {selectedImages.length > 0 && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Preview ({selectedImages.length} image{selectedImages.length > 1 ? 's' : ''}):
+                        </Typography>
+                        
+                        <Grid container spacing={2}>
+                          {selectedImages.map((imageFile) => (
+                            <Grid item xs={12} sm={6} md={4} key={imageFile.id}>
+                              <Box
+                                sx={{
+                                  position: "relative",
+                                  borderRadius: 2,
+                                  overflow: "hidden",
+                                  bgcolor: "#f5f5f5",
+                                  aspectRatio: "4/3",
+                                }}
+                              >
+                                <img
+                                  src={imageFile.preview}
+                                  alt={`Preview ${imageFile.id}`}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                
+                                {/* Remove button overlay */}
+                                <IconButton
+                                  onClick={() => removeImage(imageFile.id)}
+                                  sx={{
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    bgcolor: "rgba(0,0,0,0.7)",
+                                    color: "white",
+                                    width: 32,
+                                    height: 32,
+                                    "&:hover": {
+                                      bgcolor: "rgba(0,0,0,0.9)",
+                                    },
+                                  }}
+                                  size="small"
+                                >
+                                  <Close fontSize="small" />
+                                </IconButton>
+
+                                {/* File info overlay */}
+                                <Box
+                                  sx={{
+                                    position: "absolute",
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bgcolor: "rgba(0,0,0,0.7)",
+                                    color: "white",
+                                    p: 1,
+                                  }}
+                                >
+                                  <Typography variant="caption" noWrap>
+                                    {imageFile.file.name}
+                                  </Typography>
+                                  <br />
+                                  <Typography variant="caption">
+                                    {(imageFile.file.size / 1024 / 1024).toFixed(1)}MB
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
                       </Box>
                     )}
                   </Box>
@@ -530,7 +688,7 @@ const handlePost = async () => {
                         textTransform: "none",
                       }}
                     >
-                      {isLoading ? "Posting..." : "Publish Post"}
+                      {isLoading ? "Posting..." : `Publish Post${selectedImages.length > 0 ? ` with ${selectedImages.length} image${selectedImages.length > 1 ? 's' : ''}` : ''}`}
                     </Button>
                   </Box>
                 </Box>
@@ -539,7 +697,7 @@ const handlePost = async () => {
           </CardContent>
         </Card>
 
-        {/* Schedule Popover - keeping your existing implementation */}
+        {/* Schedule Popover */}
         <Popover
           id={id}
           open={open}

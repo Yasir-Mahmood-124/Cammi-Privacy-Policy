@@ -8,7 +8,7 @@ import {
   Paper,
   CircularProgress,
 } from "@mui/material";
-import { useLazyGetLoginUrlQuery } from "@/redux/apiSlice";
+import { useLazyGetLoginUrlQuery } from "@/redux/services/linkedinLoginApi"; // ✅ updated import
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 const LinkedInLogin: React.FC = () => {
@@ -16,7 +16,7 @@ const LinkedInLogin: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      const result = await trigger().unwrap();
+      const result = await trigger().unwrap(); // unwrap ensures you get the actual data or throw error
       if (result.login_url) {
         window.location.href = result.login_url;
       }

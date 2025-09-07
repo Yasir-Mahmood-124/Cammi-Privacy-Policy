@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Box, useTheme } from "@mui/material";
 import Sidebar from "@/components/Sidebar";
-import LinkedInPost from "@/components/LinkedInPost";
 import CalendarView from "@/components/CalendarView";
-import { useGetPostsMutation } from "@/redux/viewApiSlice";
+import { useGetPostsMutation } from "@/redux/services/viewApiSlice";
+import Linkedin from "../../Views/linkedin/index";
+
+
 
 // MUI Icons
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
@@ -76,7 +78,7 @@ const Dashboard = () => {
       />
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        {selectedMenu === "linkedin" && <LinkedInPost sub={sub} />}
+        {selectedMenu === "linkedin" && <Linkedin/>}
         {selectedMenu === "events" && (
           <>
             {isLoading ? (
