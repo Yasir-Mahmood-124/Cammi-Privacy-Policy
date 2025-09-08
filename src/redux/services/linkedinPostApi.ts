@@ -17,7 +17,8 @@ export interface LinkedInPostResponse {
 export const linkedinPostApi = createApi({
   reducerPath: "linkedinPostApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://s248gcnoqb.execute-api.us-east-1.amazonaws.com/test",
+    // baseUrl: "https://s248gcnoqb.execute-api.us-east-1.amazonaws.com/test",
+    baseUrl: "https://o3uzr46ro5.execute-api.us-east-1.amazonaws.com/cammi-dev/",
     prepareHeaders: (headers) => {
       headers.set("Content-Type", "application/json");
       return headers;
@@ -29,7 +30,7 @@ export const linkedinPostApi = createApi({
       LinkedInPostRequest
     >({
       query: (body) => ({
-        url: "/text-post",
+        url: "text-post",
         method: "POST",
         body,
       }),

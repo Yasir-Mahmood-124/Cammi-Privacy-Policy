@@ -119,26 +119,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ posts }) => {
         p: 3,
         width: "100%",
         height: "100%",
-        overflow: "auto",
+        // Remove overflow auto and replace with hidden to prevent scrollbars
+        overflow: "hidden",
         boxSizing: "border-box",
         bgcolor: "#fafafa",
         borderRadius: 3,
         border: "1px solid #e0e0e0",
-        "&::-webkit-scrollbar": { 
-          width: 6, 
-          height: 6 
-        },
-        "&::-webkit-scrollbar-thumb": {
-          bgcolor: "#bdbdbd",
-          borderRadius: 3,
-          "&:hover": {
-            bgcolor: "#9e9e9e"
-          }
-        },
-        "&::-webkit-scrollbar-track": {
-          bgcolor: "#f5f5f5",
-          borderRadius: 3
-        }
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* Enhanced Header Section */}
@@ -149,7 +137,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ posts }) => {
           alignItems: "center",
           mb: 4,
           pb: 2,
-          borderBottom: "1px solid #e0e0e0"
+          borderBottom: "1px solid #e0e0e0",
+          flexShrink: 0, // Prevent header from shrinking
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -203,240 +192,268 @@ const CalendarView: React.FC<CalendarViewProps> = ({ posts }) => {
         </Stack>
       </Box>
 
-      {/* Enhanced Calendar Grid */}
+      {/* Calendar Container with proper overflow handling */}
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: "120px repeat(7, 1fr)",
-          gap: "1px",
-          bgcolor: "#e0e0e0",
-          borderRadius: 2,
-          overflow: "hidden",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
+          flex: 1,
+          overflow: "auto",
+          "&::-webkit-scrollbar": { 
+            width: 6, 
+            height: 6 
+          },
+          "&::-webkit-scrollbar-thumb": {
+            bgcolor: "#bdbdbd",
+            borderRadius: 3,
+            "&:hover": {
+              bgcolor: "#9e9e9e"
+            }
+          },
+          "&::-webkit-scrollbar-track": {
+            bgcolor: "#f5f5f5",
+            borderRadius: 3
+          }
         }}
       >
-        {/* Empty cell top-left */}
+        {/* Enhanced Calendar Grid */}
         <Box
           sx={{
-            bgcolor: "#f8f9fa",
-            minHeight: "60px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "sticky",
-            top: 0,
-            left: 0,
-            zIndex: 3,
-            borderBottom: "2px solid #e0e0e0"
+            display: "grid",
+            gridTemplateColumns: "100px repeat(7, minmax(120px, 1fr))", // Fixed time column, flexible day columns
+            gap: "1px",
+            bgcolor: "#e0e0e0",
+            borderRadius: 2,
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            minWidth: "fit-content", // Ensure grid doesn't shrink below content
           }}
         >
-          <AccessTimeOutlined sx={{ color: "#666", fontSize: 20 }} />
-        </Box>
-
-        {/* Enhanced Day headers */}
-        {DAY_ABBREVIATIONS.map((day, index) => (
+          {/* Empty cell top-left */}
           <Box
-            key={day}
             sx={{
               bgcolor: "#f8f9fa",
-              minHeight: "60px",
+              minHeight: "50px",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               position: "sticky",
               top: 0,
-              zIndex: 2,
+              left: 0,
+              zIndex: 3,
               borderBottom: "2px solid #e0e0e0"
             }}
           >
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                fontWeight: 600, 
-                color: "#1a1a1a",
-                fontSize: "0.8rem"
-              }}
-            >
-              {day}
-            </Typography>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: "#666",
-                fontSize: "0.7rem"
-              }}
-            >
-              {DAYS[index]}
-            </Typography>
+            <AccessTimeOutlined sx={{ color: "#666", fontSize: 18 }} />
           </Box>
-        ))}
 
-        {/* Enhanced Time slots */}
-        {HOURS.map((hour) => (
-          <React.Fragment key={hour}>
-            {/* Enhanced Time labels */}
+          {/* Enhanced Day headers */}
+          {DAY_ABBREVIATIONS.map((day, index) => (
             <Box
+              key={day}
               sx={{
                 bgcolor: "#f8f9fa",
-                minHeight: "100px",
+                minHeight: "50px",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "sticky",
-                left: 0,
-                zIndex: 1,
-                borderRight: "2px solid #e0e0e0"
+                top: 0,
+                zIndex: 2,
+                borderBottom: "2px solid #e0e0e0"
               }}
             >
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: "0.75rem",
-                  color: "#666",
-                  fontWeight: 500,
-                  textAlign: "center",
-                  lineHeight: 1.2
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: "#1a1a1a",
+                  fontSize: "0.8rem"
                 }}
               >
-                {formatHour(hour)}
+                {day}
+              </Typography>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: "#666",
+                  fontSize: "0.7rem"
+                }}
+              >
+                {DAYS[index]}
               </Typography>
             </Box>
+          ))}
 
-            {/* Enhanced Day cells */}
-            {DAY_ABBREVIATIONS.map((_, dayIndex) => {
-              const cellPosts = postsMap[dayIndex]?.[hour] || [];
-
-              return (
-                <Box
-                  key={dayIndex}
+          {/* Enhanced Time slots */}
+          {HOURS.map((hour) => (
+            <React.Fragment key={hour}>
+              {/* Enhanced Time labels */}
+              <Box
+                sx={{
+                  bgcolor: "#f8f9fa",
+                  minHeight: "80px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "sticky",
+                  left: 0,
+                  zIndex: 1,
+                  borderRight: "2px solid #e0e0e0"
+                }}
+              >
+                <Typography
+                  variant="caption"
                   sx={{
-                    bgcolor: "#ffffff",
-                    minHeight: "100px",
-                    p: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1,
-                    transition: "background-color 0.2s ease",
-                    "&:hover": {
-                      bgcolor: "#f5f5f5",
-                    },
+                    fontSize: "0.7rem",
+                    color: "#666",
+                    fontWeight: 500,
+                    textAlign: "center",
+                    lineHeight: 1.2
                   }}
                 >
-                  <Stack spacing={1} sx={{ height: "100%" }}>
-                    {cellPosts.map((post) => {
-                      const { date, time } = formatDateTime(post.post_time);
-                      const statusConfig = getStatusConfig(post.status);
+                  {formatHour(hour)}
+                </Typography>
+              </Box>
 
-                      return (
-                        <Tooltip
-                          key={post.id}
-                          title={
-                            <Box sx={{ p: 1 }}>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                {post.message}
-                              </Typography>
-                              <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
-                                📅 {date} ⏰ {time}
-                              </Typography>
-                              <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
-                                Status: {statusConfig.label}
-                              </Typography>
-                            </Box>
-                          }
-                          arrow
-                          placement="top"
-                        >
-                          <Card
-                            elevation={0}
-                            sx={{
-                              bgcolor: statusConfig.bgColor,
-                              border: `1px solid ${statusConfig.color}30`,
-                              borderRadius: 2,
-                              cursor: "pointer",
-                              transition: "all 0.2s ease",
-                              "&:hover": {
-                                transform: "translateY(-1px)",
-                                boxShadow: `0 4px 12px ${statusConfig.color}20`,
-                                borderColor: `${statusConfig.color}60`
-                              },
-                            }}
+              {/* Enhanced Day cells */}
+              {DAY_ABBREVIATIONS.map((_, dayIndex) => {
+                const cellPosts = postsMap[dayIndex]?.[hour] || [];
+
+                return (
+                  <Box
+                    key={dayIndex}
+                    sx={{
+                      bgcolor: "#ffffff",
+                      minHeight: "80px",
+                      p: 0.5,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.5,
+                      transition: "background-color 0.2s ease",
+                      overflow: "hidden", // Prevent cell content from overflowing
+                      "&:hover": {
+                        bgcolor: "#f5f5f5",
+                      },
+                    }}
+                  >
+                    <Stack spacing={0.5} sx={{ height: "100%" }}>
+                      {cellPosts.map((post) => {
+                        const { date, time } = formatDateTime(post.post_time);
+                        const statusConfig = getStatusConfig(post.status);
+
+                        return (
+                          <Tooltip
+                            key={post.id}
+                            title={
+                              <Box sx={{ p: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                  {post.message}
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
+                                  📅 {date} ⏰ {time}
+                                </Typography>
+                                <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
+                                  Status: {statusConfig.label}
+                                </Typography>
+                              </Box>
+                            }
+                            arrow
+                            placement="top"
                           >
-                            <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                            <Card
+                              elevation={0}
+                              sx={{
+                                bgcolor: statusConfig.bgColor,
+                                border: `1px solid ${statusConfig.color}30`,
+                                borderRadius: 1,
+                                cursor: "pointer",
+                                transition: "all 0.2s ease",
+                                minWidth: 0, // Allow card to shrink
+                                "&:hover": {
+                                  transform: "translateY(-1px)",
+                                  boxShadow: `0 2px 8px ${statusConfig.color}20`,
+                                  borderColor: `${statusConfig.color}60`
+                                },
+                              }}
+                            >
+                              <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
+                                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
+                                  <Box 
+                                    sx={{ 
+                                      color: statusConfig.color,
+                                      mt: 0.1,
+                                      flexShrink: 0 // Prevent icon from shrinking
+                                    }}
+                                  >
+                                    {statusConfig.icon}
+                                  </Box>
+                                  <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        fontSize: "0.6rem",
+                                        color: "#666",
+                                        fontWeight: 500,
+                                        display: "block",
+                                        mb: 0.25
+                                      }}
+                                    >
+                                      {time}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        fontSize: "0.7rem",
+                                        fontWeight: 500,
+                                        color: "#1a1a1a",
+                                        lineHeight: 1.2,
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        wordBreak: "break-word" // Handle long words
+                                      }}
+                                    >
+                                      {post.message}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                
+                                {/* Status indicator */}
                                 <Box 
                                   sx={{ 
-                                    color: statusConfig.color,
-                                    mt: 0.2
+                                    display: "flex", 
+                                    justifyContent: "flex-end",
+                                    mt: 0.5
                                   }}
                                 >
-                                  {statusConfig.icon}
-                                </Box>
-                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                  <Typography
-                                    variant="caption"
+                                  <Badge
                                     sx={{
-                                      fontSize: "0.65rem",
-                                      color: "#666",
-                                      fontWeight: 500,
-                                      display: "block",
-                                      mb: 0.5
+                                      "& .MuiBadge-badge": {
+                                        bgcolor: statusConfig.color,
+                                        color: "white",
+                                        fontSize: "0.55rem",
+                                        height: 14,
+                                        minWidth: 14,
+                                        borderRadius: 1
+                                      }
                                     }}
-                                  >
-                                    {time}
-                                  </Typography>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{
-                                      fontSize: "0.75rem",
-                                      fontWeight: 500,
-                                      color: "#1a1a1a",
-                                      lineHeight: 1.3,
-                                      display: "-webkit-box",
-                                      WebkitLineClamp: 2,
-                                      WebkitBoxOrient: "vertical",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis"
-                                    }}
-                                  >
-                                    {post.message}
-                                  </Typography>
+                                    badgeContent={statusConfig.label.charAt(0)}
+                                  />
                                 </Box>
-                              </Box>
-                              
-                              {/* Status indicator */}
-                              <Box 
-                                sx={{ 
-                                  display: "flex", 
-                                  justifyContent: "flex-end",
-                                  mt: 1
-                                }}
-                              >
-                                <Badge
-                                  sx={{
-                                    "& .MuiBadge-badge": {
-                                      bgcolor: statusConfig.color,
-                                      color: "white",
-                                      fontSize: "0.6rem",
-                                      height: 16,
-                                      minWidth: 16,
-                                      borderRadius: 1
-                                    }
-                                  }}
-                                  badgeContent={statusConfig.label.charAt(0)}
-                                />
-                              </Box>
-                            </CardContent>
-                          </Card>
-                        </Tooltip>
-                      );
-                    })}
-                  </Stack>
-                </Box>
-              );
-            })}
-          </React.Fragment>
-        ))}
+                              </CardContent>
+                            </Card>
+                          </Tooltip>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </Box>
       </Box>
     </Paper>
   );

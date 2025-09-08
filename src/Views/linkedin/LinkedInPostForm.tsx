@@ -19,7 +19,6 @@ import {
   CheckCircle,
   Schedule,
   EditNote,
-  AutoFixHigh,
   Psychology,
   LinkedIn,
   Send,
@@ -37,7 +36,7 @@ import { useCreateLinkedInPostMutation } from "@/redux/textPostSlice";
 import { useSchedulePostMutation } from "@/redux/services/schedulePostApi";
 import CustomSnackbar from "@/components/CustomSnackbar";
 
-// ✅ Import your reusable components
+// ✅ Import reusable components
 import CreatePostBox from "./CreatePostBox";
 import AIGenerateBox from "./AIGenerateBox";
 
@@ -52,7 +51,8 @@ interface ImageFile {
 }
 
 const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
-  const [mode, setMode] = useState<"create" | "generate" | "refine">("create");
+  // ✅ Removed "refine"
+  const [mode, setMode] = useState<"create" | "generate">("create");
   const [message, setMessage] = useState("");
   const [aiMessage, setAiMessage] = useState("");
   const [scheduledDateTime, setScheduledDateTime] = useState<Dayjs | null>(null);
@@ -279,7 +279,6 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
     const configs = {
       create: { icon: <EditNote />, label: "Create" },
       generate: { icon: <Psychology />, label: "AI Generate" },
-      refine: { icon: <AutoFixHigh />, label: "AI Refine" },
     };
     return configs[modeType as keyof typeof configs] || configs.create;
   };
@@ -312,7 +311,7 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
               onChange={(_, val) => val && setMode(val)}
               sx={{ mb: 4 }}
             >
-              {["create", "generate", "refine"].map((modeType) => {
+              {["create", "generate"].map((modeType) => {
                 const config = getModeConfig(modeType);
                 return (
                   <ToggleButton key={modeType} value={modeType}>
@@ -334,7 +333,7 @@ const LinkedInPost: React.FC<LinkedInPostProps> = ({ sub }) => {
               <AIGenerateBox
                 aiMessage={aiMessage}
                 setAiMessage={setAiMessage}
-                onGenerate={handleAIGenerate}
+                // onGenerate={handleAIGenerate}
               />
             )}
 
